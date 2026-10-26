@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Datasets and training outputs (too big for git; rebuild with the scripts)
+ml/data/
+ml/runs/
+ml/export/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

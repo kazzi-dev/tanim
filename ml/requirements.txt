@@ -1,0 +1,4 @@
+# Data prep
+numpy>=2.0
+pillow>=11.0
+imagehash>=4.3

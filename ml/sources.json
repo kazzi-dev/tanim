@@ -1,0 +1,64 @@
+{
+  "classes": [
+    "bacterial_leaf_blight",
+    "blast",
+    "brown_spot",
+    "tungro",
+    "healthy"
+  ],
+  "sources": [
+    {
+      "id": "sethy2020",
+      "name": "Rice Leaf Disease Image Samples (Sethy et al.)",
+      "page": "https://data.mendeley.com/datasets/fwcj7stb8r/2",
+      "doi": "10.17632/fwcj7stb8r.2",
+      "license": "CC BY 4.0",
+      "citation": "Sethy, P. K., Barpanda, N. K., Rath, A. K., & Behera, S. K. (2020). Deep feature based rice leaf disease identification using support vector machine. Computers and Electronics in Agriculture, 175, 105527.",
+      "file": "Rice Leaf Disease Images.7z",
+      "url": "https://data.mendeley.com/public-files/datasets/fwcj7stb8r/files/fd8717c4-0d65-4c80-a76c-3b61cb68e80d/file_downloaded",
+      "sha256": "b2d5fbef5a8ef6adefa04a83be7ee5150091f412d40162ecdf9fd2b1b5e24aaf",
+      "size_bytes": 179355409,
+      "folders": {
+        "Rice Leaf Disease Images/Bacterialblight": "bacterial_leaf_blight",
+        "Rice Leaf Disease Images/Blast": "blast",
+        "Rice Leaf Disease Images/Brownspot": "brown_spot",
+        "Rice Leaf Disease Images/Tungro": "tungro"
+      }
+    },
+    {
+      "id": "riceleafbd",
+      "name": "RiceLeafBD: A Real-Field Image Dataset for Rice Leaf Disease Detection and Classification in Bangladesh",
+      "page": "https://data.mendeley.com/datasets/kx9rx8p2mz/1",
+      "doi": "10.17632/kx9rx8p2mz.1",
+      "license": "CC BY 4.0",
+      "file": "Original Images.zip",
+      "url": "https://data.mendeley.com/public-files/datasets/kx9rx8p2mz/files/fdab2bd9-ed8b-4156-8d96-0b5d8f18f4ed/file_downloaded",
+      "sha256": "3280cc176c2ee9f6ee4386e5728623fc7e8f9204b31c50f4ebb303edc52d9c83",
+      "size_bytes": 498000000,
+      "folders": {
+        "Original Images/Bacterial Leaf Blight": "bacterial_leaf_blight",
+        "Original Images/Brown Spot": "brown_spot",
+        "Original Images/Tungro Virus": "tungro",
+        "Original Images/Healthy Leaf": "healthy"
+      }
+    },
+    {
+      "id": "bd5",
+      "name": "RiceLeafDisease-BD5: A Field-Collected Five-Class Image Dataset from Bangladesh",
+      "page": "https://data.mendeley.com/datasets/sjkptpgv79/2",
+      "doi": "10.17632/sjkptpgv79.2",
+      "license": "CC BY 4.0",
+      "file": "RiceLeafDisease-BD5.rar",
+      "url": "https://data.mendeley.com/public-files/datasets/sjkptpgv79/files/4f00535b-3d8e-47a0-b9ec-ad5ed263e6ab/file_downloaded",
+      "sha256": "ea5da4b300af32998d4d2c396f5033b3d82843f5e9629a15bfc1131f744c9d2b",
+      "size_bytes": 22000000,
+      "folders": {
+        "RiceLeafBD/Blast": "blast",
+        "RiceLeafBD/Tungro": "tungro",
+        "RiceLeafBD/Normal_Leaf": "healthy",
+        "RiceLeafBD/Narrow_Brown_Spot": null,
+        "RiceLeafBD/Sheath_Blight": null
+      }
+    }
+  ]
+}
