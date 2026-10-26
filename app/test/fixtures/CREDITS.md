@@ -1,0 +1,1 @@
+Photos are from the Tanim training sources, all CC BY 4.0 on Mendeley Data: Sethy et al. (2020) doi:10.17632/fwcj7stb8r.2, RiceLeafBD doi:10.17632/kx9rx8p2mz.1, RiceLeafDisease-BD5 doi:10.17632/sjkptpgv79.2. Resized to a 320 px short side.

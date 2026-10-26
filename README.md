@@ -15,7 +15,8 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 - [x] Never-seen-source test: 0.32–0.61 accuracy, the model leans on backgrounds (see model card)
 - [ ] Reduce the background shortcut
 - [x] ONNX export: 3.4 MB int8, 5.7 ms per photo, heatmaps built in
-- [ ] Flutter app (`app/`)
+- [x] Flutter app: scan, result with heatmap, quality warnings ([app README](app/README.md))
+- [ ] Run the app on a real phone and the model test on Windows
 - [ ] Collect and add photos from Filipino farmers
 
 ## Layout
@@ -28,8 +29,10 @@ ml/
   scripts/train.py         fine-tune a pretrained backbone → ml/runs/<name>/
   scripts/heatmaps.py      draw what the model looks at on validation images
   scripts/export.py        ONNX export + int8 quantization + checks → ml/export/<run>/
+  scripts/make_app_fixtures.py  test photos + expected outputs for the app tests
   scripts/common.py        shared dataset, model and metrics code
   data/                    (git-ignored) downloads, raw images, manifest
+app/                       Flutter app (Android, iOS); runs the model with ONNX Runtime
 docs/
   DATASET.md               where the images come from and what's wrong with them
   MODEL.md                 model, training setup and results
