@@ -16,7 +16,8 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 - [ ] Reduce the background shortcut
 - [x] ONNX export: 3.4 MB int8, 5.7 ms per photo, heatmaps built in
 - [x] Flutter app: scan, result with heatmap, quality warnings ([app README](app/README.md))
-- [ ] Run the app on a real phone and the model test on Windows
+- [x] Model verified on a real phone: matches Python on 10/10 photos, about 60 ms per scan
+- [ ] Try the camera flow on a phone in a real field
 - [ ] Collect and add photos from Filipino farmers
 
 ## Layout

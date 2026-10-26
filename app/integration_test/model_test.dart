@@ -1,17 +1,21 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:tanim/features/scan/data/leaf_classifier.dart';
 
+import 'fixtures.g.dart';
+
 /// Runs the real int8 model through ONNX Runtime on a device and checks it
-/// agrees with Python. Run on desktop with: flutter test integration_test -d windows
+/// agrees with Python. Generate the embedded photos first, then run on a phone
+/// or desktop:
+///   dart run tool/embed_fixtures.dart
+///   flutter test integration_test -d <device>
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('on-device predictions match Python', (tester) async {
-    final expected = jsonDecode(File('test/fixtures/expected.json').readAsStringSync()) as Map<String, dynamic>;
+    final expected = jsonDecode(fixtureExpectedJson) as Map<String, dynamic>;
     final images = (expected['images'] as List).cast<Map<String, dynamic>>();
     final classes = (expected['classes'] as List).cast<String>();
     final classifier = await LeafClassifier.load();
@@ -20,7 +24,7 @@ void main() {
     var worst = 0.0;
     for (final fixture in images) {
       final stopwatch = Stopwatch()..start();
-      final d = await classifier.diagnose(File('test/fixtures/${fixture['file']}').readAsBytesSync());
+      final d = await classifier.diagnose(base64Decode(fixturePhotosBase64[fixture['file']]!));
       stopwatch.stop();
       final python = (fixture['probs_int8'] as List).cast<num>();
       final pythonTop = python.indexOf(python.reduce((a, b) => a > b ? a : b));

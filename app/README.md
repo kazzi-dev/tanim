@@ -33,11 +33,16 @@ flutter build apk --release --split-per-abi
 `flutter test` checks that the Dart preprocessing matches the Python pipeline on 10 fixture photos
 (`test/fixtures/`, made by `ml/scripts/make_app_fixtures.py`).
 
-`integration_test/model_test.dart` runs the real model through ONNX Runtime and checks the predictions match Python:
+`integration_test/model_test.dart` runs the real model through ONNX Runtime on a device and checks the predictions
+match Python. The fixture photos are embedded first, because a phone can't read files from the laptop:
 
 ```bash
-flutter test integration_test -d windows
+dart run tool/embed_fixtures.dart
+flutter test integration_test -d <device id>     # see `flutter devices`
 ```
+
+Last run on a phone (Android 17, arm64, over wireless debugging): 10/10 top classes match Python, largest
+probability gap 0.063, 50–110 ms per photo from bytes to heatmap after a 308 ms first run.
 
 On Windows, building for desktop needs **Developer Mode** turned on (Settings → System → For developers), because
 Flutter links plugins with symlinks.
@@ -45,4 +50,4 @@ Flutter links plugins with symlinks.
 ## Updating the model
 
 After retraining, run `ml/scripts/export.py <run>`, copy `tanim_int8.onnx` and `labels.json` from
-`ml/export/<run>/` to `assets/model/`, then run `ml/scripts/make_app_fixtures.py <run>` and `flutter test`.
+`ml/export/<run>/` to `assets/model/`, then run `ml/scripts/make_app_fixtures.py <run>`, `flutter test`, and the device test above.
