@@ -43,6 +43,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--patience", type=int, default=8)
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--seed", type=int, default=2026)
+    p.add_argument("--holdout", help="leave this source out of training and report on its train+val images "
+                                     "(its test images stay unread)")
     return p.parse_args()
 
 
@@ -119,6 +121,8 @@ def main() -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
 
     rows = read_manifest()
+    holdout_rows = [r for r in rows if r["source"] == args.holdout and r["split"] != "test"]
+    rows = [r for r in rows if r["source"] != args.holdout]
     train_rows = [r for r in rows if r["split"] == "train"]
     val_rows = [r for r in rows if r["split"] == "val"]
     print(f"Caching images (first run only)... train {len(train_rows)}, val {len(val_rows)}")
@@ -192,6 +196,12 @@ def main() -> None:
     for s in sorted(set(sources)):
         mask = sources == s
         report["by_source"][s] = summarize(y_true[mask], y_pred[mask])
+    if holdout_rows:
+        holdout_ds = LeafDataset(holdout_rows, eval_transform(args.img))
+        holdout_dl = DataLoader(holdout_ds, shuffle=False, **loader_kw)
+        h_true, h_pred = np.array(holdout_ds.labels), predict(model, holdout_dl, device).argmax(1)
+        report["holdout"] = {"source": args.holdout, **summarize(h_true, h_pred)}
+        plot_confusion(report["holdout"]["confusion"], f"never-seen source: {args.holdout}", run_dir / "confusion_holdout.png")
     (run_dir / "val_metrics.json").write_text(json.dumps(report, indent=2))
     plot_confusion(report["overall"]["confusion"], f"{args.arch} - validation", run_dir / "confusion_val.png")
 
@@ -209,6 +219,15 @@ def main() -> None:
     for s, m in report["by_source"].items():
         recalls = ", ".join(f"{c} {v['recall']:.2f}" for c, v in m["per_class"].items() if v["support"])
         print(f"  {s:11s} acc {m['accuracy']:.3f}  | recall: {recalls}")
+    if h := report.get("holdout"):
+        print(f"Never-seen source {h['source']}: acc {h['accuracy']:.3f}, macro-F1 {h['macro_f1']:.3f} (n={len(holdout_rows)})")
+        for c, m in h["per_class"].items():
+            if m["support"]:
+                print(f"  {c:22s} recall {m['recall']:.2f}  (n={m['support']})")
+        print("  confusion (rows true, cols predicted):", CLASSES)
+        for c, line in zip(CLASSES, h["confusion"]):
+            if sum(line):
+                print(f"  {c:22s} {line}")
 
 
 if __name__ == "__main__":

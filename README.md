@@ -12,8 +12,9 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 
 - [x] Public datasets downloaded, de-duplicated and split ([dataset card](docs/DATASET.md))
 - [x] Baseline model: MobileNetV3-Large, 0.98 validation macro-F1 ([model card](docs/MODEL.md))
-- [ ] Check how it does on a source it hasn't seen
-- [ ] Export to ONNX (int8) for the app
+- [x] Never-seen-source test: 0.32–0.61 accuracy, the model leans on backgrounds (see model card)
+- [ ] Reduce the background shortcut
+- [x] ONNX export: 3.4 MB int8, 5.7 ms per photo, heatmaps built in
 - [ ] Flutter app (`app/`)
 - [ ] Collect and add photos from Filipino farmers
 
@@ -26,6 +27,7 @@ ml/
   scripts/build_dataset.py de-duplicate and split → ml/data/manifest.csv
   scripts/train.py         fine-tune a pretrained backbone → ml/runs/<name>/
   scripts/heatmaps.py      draw what the model looks at on validation images
+  scripts/export.py        ONNX export + int8 quantization + checks → ml/export/<run>/
   scripts/common.py        shared dataset, model and metrics code
   data/                    (git-ignored) downloads, raw images, manifest
 docs/
@@ -56,6 +58,8 @@ Install PyTorch with CUDA first for GPU training (the CPU build works too, just 
 .venv/Scripts/python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 .venv/Scripts/python ml/scripts/train.py --arch mobilenet_v3_large
 .venv/Scripts/python ml/scripts/heatmaps.py mobilenet_v3_large
+.venv/Scripts/python ml/scripts/train.py --holdout bd5 --name loso_bd5   # never-seen-source test
+.venv/Scripts/python ml/scripts/export.py mobilenet_v3_large
 ```
 
 ## Credits
