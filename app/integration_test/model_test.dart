@@ -10,7 +10,7 @@ import 'fixtures.g.dart';
 /// agrees with Python. Generate the embedded photos first, then run on a phone
 /// or desktop:
 ///   dart run tool/embed_fixtures.dart
-///   flutter test integration_test -d <device>
+///   flutter test integration_test -d DEVICE_ID
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
