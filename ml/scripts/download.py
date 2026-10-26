@@ -88,6 +88,8 @@ def main() -> None:
     DOWNLOADS.mkdir(parents=True, exist_ok=True)
     tar = find_tar()
     for source in sources:
+        if source.get("local"):
+            continue  # photos imported from the app (import_collection.py); nothing to download
         if not wanted or source["id"] in wanted:
             fetch(source, tar)
 

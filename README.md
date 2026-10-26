@@ -17,6 +17,7 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 - [x] ONNX export: 3.4 MB int8, 5.7 ms per photo, heatmaps built in
 - [x] Flutter app: scan, result with heatmap, quality warnings ([app README](app/README.md))
 - [x] Model verified on a real phone: matches Python on 10/10 photos, about 60 ms per scan
+- [x] Photo collection mode: label photos in the app, export a zip, import with `ml/scripts/import_collection.py`
 - [ ] Try the camera flow on a phone in a real field
 - [ ] Collect and add photos from Filipino farmers
 
@@ -28,6 +29,7 @@ ml/
   scripts/download.py      download + verify + extract the datasets
   scripts/build_dataset.py de-duplicate and split → ml/data/manifest.csv
   scripts/train.py         fine-tune a pretrained backbone → ml/runs/<name>/
+  scripts/import_collection.py  add photos exported from the app as the ph_field source
   scripts/make_masks.py    cut leaves out of plain-background photos for --swap-bg
   scripts/heatmaps.py      draw what the model looks at on validation images
   scripts/export.py        ONNX export + int8 quantization + checks → ml/export/<run>/

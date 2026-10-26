@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tanim/core/router/app_router.dart';
+import 'package:tanim/features/collect/domain/sample.dart';
+import 'package:tanim/features/collect/presentation/label_screen.dart';
 import 'package:tanim/features/scan/application/scan_providers.dart';
+import 'package:tanim/features/scan/data/leaf_classifier.dart';
 import 'package:tanim/features/scan/domain/diagnosis.dart';
 import 'package:tanim/features/scan/domain/disease.dart';
 
@@ -15,7 +19,7 @@ class ResultScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Result')),
       body: switch (result) {
-        AsyncData(:final value) => _ResultBody(diagnosis: value),
+        AsyncData(:final value) => _ResultBody(diagnosis: value, photoPath: photoPath),
         AsyncError(:final error) => _Failure(error: error, onRetry: () => ref.invalidate(diagnosisProvider(photoPath))),
         _ => const _Checking(),
       },
@@ -65,8 +69,9 @@ class _Failure extends StatelessWidget {
 }
 
 class _ResultBody extends StatelessWidget {
-  const _ResultBody({required this.diagnosis});
+  const _ResultBody({required this.diagnosis, required this.photoPath});
   final Diagnosis diagnosis;
+  final String photoPath;
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +90,8 @@ class _ResultBody extends StatelessWidget {
         const SizedBox(height: 24),
         const _Disclaimer(),
         const SizedBox(height: 24),
+        _SaveForTraining(diagnosis: d, photoPath: photoPath),
+        const SizedBox(height: 12),
         FilledButton.icon(
           icon: const Icon(Icons.photo_camera_outlined),
           label: const Text('Scan another leaf'),
@@ -332,3 +339,41 @@ class _Disclaimer extends StatelessWidget {
 }
 
 String _pct(double v) => '${(v * 100).round()}%';
+
+/// Hands the photo to the label screen, with Tanim's guess kept apart from the
+/// person's label so field accuracy can be measured later.
+class _SaveForTraining extends StatefulWidget {
+  const _SaveForTraining({required this.diagnosis, required this.photoPath});
+  final Diagnosis diagnosis;
+  final String photoPath;
+
+  @override
+  State<_SaveForTraining> createState() => _SaveForTrainingState();
+}
+
+class _SaveForTrainingState extends State<_SaveForTraining> {
+  Sample? _saved;
+
+  Future<void> _save() async {
+    final saved = await context.push<Sample>(
+      Routes.label,
+      extra: LabelArgs(
+        photoPath: widget.photoPath,
+        prediction: widget.diagnosis.top.label,
+        confidence: widget.diagnosis.confidence,
+        modelVersion: kModelVersion,
+      ),
+    );
+    if (saved != null && mounted) setState(() => _saved = saved);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final saved = _saved;
+    return OutlinedButton.icon(
+      icon: Icon(saved == null ? Icons.bookmark_add_outlined : Icons.check),
+      label: Text(saved == null ? 'Save for training' : 'Saved as ${saved.label.name.toLowerCase()}'),
+      onPressed: saved == null ? _save : null,
+    );
+  }
+}

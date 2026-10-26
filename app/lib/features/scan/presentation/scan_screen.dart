@@ -6,10 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tanim/core/router/app_router.dart';
+import 'package:tanim/features/collect/application/collection_controller.dart';
+import 'package:tanim/features/collect/domain/sample.dart';
+import 'package:tanim/features/collect/presentation/label_screen.dart';
 import 'package:tanim/features/scan/application/scan_providers.dart';
 
+/// The camera. In [collect] mode each photo is labelled and saved for
+/// training instead of being diagnosed, and the camera stays open for the next.
 class ScanScreen extends ConsumerWidget {
-  const ScanScreen({super.key});
+  const ScanScreen({super.key, this.collect = false});
+  final bool collect;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,8 +23,8 @@ class ScanScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       body: switch (cameras) {
-        AsyncData(:final value) when value.isNotEmpty => _CameraView(camera: _backCamera(value)),
-        AsyncData() || AsyncError() => const _NoCameraView(),
+        AsyncData(:final value) when value.isNotEmpty => _CameraView(camera: _backCamera(value), collect: collect),
+        AsyncData() || AsyncError() => _NoCameraView(collect: collect),
         _ => const Center(child: CircularProgressIndicator()),
       },
     );
@@ -28,16 +34,31 @@ class ScanScreen extends ConsumerWidget {
       cameras.firstWhere((c) => c.lensDirection == CameraLensDirection.back, orElse: () => cameras.first);
 }
 
-Future<void> _pickFromGallery(BuildContext context) async {
-  final photo = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1600, maxHeight: 1600);
-  if (photo != null && context.mounted) {
-    await context.push(Routes.result, extra: photo.path);
+Future<void> _pickFromGallery(BuildContext context, {required bool collect}) async {
+  // Training photos keep full resolution; scanning only needs a 224 px square.
+  final photo = collect
+      ? await ImagePicker().pickImage(source: ImageSource.gallery)
+      : await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1600, maxHeight: 1600);
+  if (photo != null && context.mounted) await _usePhoto(context, photo.path, collect: collect);
+}
+
+Future<void> _usePhoto(BuildContext context, String path, {required bool collect}) async {
+  if (!collect) {
+    await context.push(Routes.result, extra: path);
+    return;
+  }
+  final saved = await context.push<Sample>(Routes.label, extra: LabelArgs(photoPath: path));
+  if (saved != null && context.mounted) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text('Saved as ${saved.label.name.toLowerCase()}. Take the next one.')));
   }
 }
 
 class _CameraView extends StatefulWidget {
-  const _CameraView({required this.camera});
+  const _CameraView({required this.camera, required this.collect});
   final CameraDescription camera;
+  final bool collect;
 
   @override
   State<_CameraView> createState() => _CameraViewState();
@@ -100,7 +121,7 @@ class _CameraViewState extends State<_CameraView> with WidgetsBindingObserver {
     setState(() => _busy = true);
     try {
       final photo = await controller.takePicture();
-      if (mounted) await context.push(Routes.result, extra: photo.path);
+      if (mounted) await _usePhoto(context, photo.path, collect: widget.collect);
     } on CameraException {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -123,10 +144,14 @@ class _CameraViewState extends State<_CameraView> with WidgetsBindingObserver {
           _Message(text: _error!)
         else
           const Center(child: CircularProgressIndicator()),
-        const _LeafGuide(),
+        _LeafGuide(collect: widget.collect),
         Align(
           alignment: Alignment.bottomCenter,
-          child: _ControlBar(onShutter: controller == null || _busy ? null : _capture, busy: _busy),
+          child: _ControlBar(
+            onShutter: controller == null || _busy ? null : _capture,
+            busy: _busy,
+            collect: widget.collect,
+          ),
         ),
       ],
     );
@@ -137,7 +162,8 @@ class _CameraViewState extends State<_CameraView> with WidgetsBindingObserver {
 /// is as wide as the (centred, full-width) preview, so it sits in the middle of
 /// the screen. Everything outside it is dimmed.
 class _LeafGuide extends StatelessWidget {
-  const _LeafGuide();
+  const _LeafGuide({required this.collect});
+  final bool collect;
 
   @override
   Widget build(BuildContext context) {
@@ -150,17 +176,27 @@ class _LeafGuide extends StatelessWidget {
             Positioned.fill(
               child: CustomPaint(painter: _DimOutside(side: side)),
             ),
-            const SafeArea(
-              child: Padding(padding: EdgeInsets.only(top: 16), child: _TopBar()),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: _TopBar(collect: collect),
+              ),
             ),
             Positioned(
               left: 24,
               right: 24,
               top: top + side + 16,
-              child: const Text(
-                'Fill the square with one leaf.\nDaylight works best.',
+              child: Text(
+                collect
+                    ? 'One leaf per photo, in the square.\nYou will label it next.'
+                    : 'Fill the square with one leaf.\nDaylight works best.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 16, height: 1.4, shadows: [Shadow(blurRadius: 8)]),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  height: 1.4,
+                  shadows: [Shadow(blurRadius: 8)],
+                ),
               ),
             ),
           ],
@@ -198,22 +234,50 @@ class _DimOutside extends CustomPainter {
   bool shouldRepaint(_DimOutside old) => old.side != side;
 }
 
-class _TopBar extends StatelessWidget {
-  const _TopBar();
+class _TopBar extends ConsumerWidget {
+  const _TopBar({required this.collect});
+  final bool collect;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    const white = TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600);
+    if (collect) {
+      final count = ref.watch(collectionProvider).value?.length;
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          children: [
+            IconButton(
+              tooltip: 'Done',
+              color: Colors.white,
+              icon: const Icon(Icons.close),
+              onPressed: () => context.pop(),
+            ),
+            const Text('Collect photos', style: white),
+            const Spacer(),
+            if (count != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Chip(label: Text('$count saved'), visualDensity: VisualDensity.compact),
+              ),
+          ],
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           const Icon(Icons.eco, color: Colors.white),
           const SizedBox(width: 8),
-          const Text(
-            'Tanim',
-            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const Text('Tanim', style: white),
           const Spacer(),
+          IconButton(
+            tooltip: 'Training photos',
+            color: Colors.white,
+            icon: const Icon(Icons.collections_bookmark_outlined),
+            onPressed: () => context.push(Routes.collection),
+          ),
           IconButton(
             tooltip: 'About Tanim',
             color: Colors.white,
@@ -227,9 +291,10 @@ class _TopBar extends StatelessWidget {
 }
 
 class _ControlBar extends StatelessWidget {
-  const _ControlBar({required this.onShutter, required this.busy});
+  const _ControlBar({required this.onShutter, required this.busy, required this.collect});
   final VoidCallback? onShutter;
   final bool busy;
+  final bool collect;
 
   @override
   Widget build(BuildContext context) {
@@ -243,7 +308,7 @@ class _ControlBar extends StatelessWidget {
               tooltip: 'Pick a photo',
               iconSize: 28,
               icon: const Icon(Icons.photo_library_outlined),
-              onPressed: () => _pickFromGallery(context),
+              onPressed: () => _pickFromGallery(context, collect: collect),
             ),
             Semantics(
               button: true,
@@ -278,7 +343,8 @@ class _ControlBar extends StatelessWidget {
 }
 
 class _NoCameraView extends StatelessWidget {
-  const _NoCameraView();
+  const _NoCameraView({required this.collect});
+  final bool collect;
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +352,7 @@ class _NoCameraView extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          const _TopBar(),
+          _TopBar(collect: collect),
           const Spacer(),
           const _Message(text: 'No camera found on this device.\nPick a photo of a rice leaf instead.'),
           const SizedBox(height: 24),
@@ -295,7 +361,7 @@ class _NoCameraView extends StatelessWidget {
             child: FilledButton.icon(
               icon: const Icon(Icons.photo_library_outlined),
               label: const Text('Pick a photo'),
-              onPressed: () => _pickFromGallery(context),
+              onPressed: () => _pickFromGallery(context, collect: collect),
             ),
           ),
           const Spacer(),

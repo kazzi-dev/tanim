@@ -83,5 +83,16 @@ Stratified by class *and* source, 70 / 15 / 15, seed 2026. The test split is loc
 
 ## Next: Filipino farmer photos
 
-When real samples come in, add them as a new source (for example `ph_field_2027`) with their own folder mapping. Keep a
-**separate test set made only of Philippine photos**, and report it next to the public-data test score.
+Collect them with the app's **Collect** mode (see `app/README.md`), export the zip, then:
+
+```bash
+.venv/Scripts/python ml/scripts/import_collection.py tanim_photos_YYYYMMDD_HHMMSS.zip
+.venv/Scripts/python ml/scripts/build_dataset.py
+```
+
+They become the `ph_field` source, split like the others, so `ph_field`'s test images form a **Philippine-only test
+set**. Report it next to the public-data test score. Also run `train.py --holdout ph_field`: that's the honest
+"never seen a Philippine photo" number. Each row records who labelled it (self, farmer, agriculturist); prefer
+agriculturist labels for the test set.
+
+Before publishing any of these photos, get the farmer's consent; the importer marks the source that way.

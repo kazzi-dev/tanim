@@ -12,6 +12,9 @@ import 'package:tanim/features/scan/domain/disease.dart';
 const _modelAsset = 'assets/model/tanim_int8.onnx';
 const _labelsAsset = 'assets/model/labels.json';
 
+/// Which training run the bundled model came from; saved with each training photo.
+const kModelVersion = 'mobilenet_v3_large@2026-10-26';
+
 /// Runs the exported model (see ml/scripts/export.py) on the phone.
 class LeafClassifier {
   LeafClassifier._(this._session);

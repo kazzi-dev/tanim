@@ -11,6 +11,15 @@ ONNX Runtime. No network is needed.
   with the two likeliest options; a warning if the photo is too dark or blurry; what the disease looks like and what to
   do; the other classes; and a reminder to check with the Municipal Agriculture Office.
 - **About:** how it works, what it gets wrong, photo credits.
+- **Training photos** (bookmark icon on the scan screen): photos saved for retraining, with counts per label, details,
+  delete, and **Export all** (a zip sent through the share sheet: Drive, Messenger, email, Nearby Share).
+- **Collect:** the camera in collection mode. Each photo goes to a label screen (the five diseases, "Something else"
+  or "Not sure"; who labelled it: me, farmer or agriculturist; an optional note), then back to the camera for the next.
+  A result can also be saved with **Save for training**; Tanim's guess is stored apart from the person's label so field
+  accuracy can be measured later.
+
+Training photos live in the app's private storage (`collection/photos/` and `collection/samples.json`) and never leave
+the phone until exported. No location is recorded.
 
 ## How a photo becomes an answer
 
@@ -46,6 +55,16 @@ probability gap 0.063, 50–110 ms per photo from bytes to heatmap after a 308 m
 
 On Windows, building for desktop needs **Developer Mode** turned on (Settings → System → For developers), because
 Flutter links plugins with symlinks.
+
+## Training photos → dataset
+
+```bash
+.venv/Scripts/python ml/scripts/import_collection.py tanim_photos_YYYYMMDD_HHMMSS.zip
+.venv/Scripts/python ml/scripts/build_dataset.py
+```
+
+The importer only extracts `<label>/<id>.jpg` entries with a known label (an exported zip is treated as untrusted), merges
+`labels.csv`, and adds a `ph_field` source on first use. "other" and "unsure" photos are kept but not trained on.
 
 ## Updating the model
 
