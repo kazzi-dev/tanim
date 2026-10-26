@@ -90,6 +90,42 @@ Expect real farmer photos to land somewhere between these numbers and the 0.98 a
 
 Re-run with `train.py --holdout <source>` after each change: this is the number to push up.
 
+### Trying to remove the shortcut
+
+Two training changes, each judged by the never-seen-source test. Single runs turned out to be noisy (the BD5 test gave
+32%, 23% and 43% with identical settings), so the final comparison averages 3 seeds per setting.
+
+**1. Tighter crops** (`--crop-min 0.1`, zooming in so lesions fill the frame). One seed: 21% / 48% / 58% against
+32% / 47% / 61%. No better, so dropped.
+
+**2. Background swap** (`--swap-bg 0.7`). `ml/scripts/make_masks.py` cuts leaves out of plain-background photos by
+colour (paper is pale and grey; leaves are saturated), closes the gaps that pale blast lesions leave, and keeps a mask
+only when it looks like a cut-out leaf. That gave masks for 1,300 of 1,340 BD5 photos and 21 of 290 Sethy photos.
+During training, 70% of the time a masked leaf is pasted onto a heavily blurred field photo from the same run's
+training set. The blur wipes out any lesions in the background, so they can't contradict the label.
+
+![Leaf masks](img/leaf_masks.jpg)
+
+![Background swap: original above, swapped below](img/background_swap.jpg)
+
+Accuracy on the left-out source, mean of 3 seeds:
+
+| Left out | Baseline | Background swap | Swap better in |
+|---|---:|---:|---:|
+| bd5 | 32.8% | 28.6% | 0 of 3 seeds |
+| riceleafbd | 45.0% | 47.5% | 2 of 3 |
+| sethy2020 | 59.0% | 60.1% | 3 of 3 (macro-F1 0.505 → 0.540) |
+| **mean** | **45.6%** | **45.4%** | |
+
+The swap helps a little where it has many leaves to work with (holding out RiceLeafBD or Sethy leaves BD5's 1,300
+masked leaves in training). It can't help when BD5 itself is held out, because then only 21 masked leaves remain.
+**Overall it's a wash**, so the app keeps the baseline model.
+
+What this says about the gap: healthy field leaves stay at 0–3% recall whichever trick is used. The difference between
+a *picked leaf on paper* and a *living plant in a field* isn't only the background: lighting, overlapping leaves,
+leaf angle and the leaf itself all differ. Augmentation can't invent that. **Photos of every class in real fields,
+especially healthy leaves and blast, are the fix.**
+
 ## Export
 
 `ml/scripts/export.py <run>` writes an ONNX model the app runs with ONNX Runtime. Normalization, softmax and
@@ -114,6 +150,6 @@ percentile brings it back.
 
 ## Next
 
-- Reduce the background shortcut (see above) and re-check with the never-seen-source runs
+- Collect field photos (Philippines) for every class, then re-run the never-seen-source test with them as a new source
 - Flutter app with ONNX Runtime
 - Open the test split once, for the final model only

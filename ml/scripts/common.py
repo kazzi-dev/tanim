@@ -3,11 +3,12 @@
 import csv
 import hashlib
 import json
+import random
 from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image, ImageOps
+from PIL import Image, ImageFilter, ImageOps
 from torch import nn
 from torch.utils.data import Dataset
 from torchvision import models
@@ -16,6 +17,7 @@ from torchvision.transforms import v2 as T
 ML_DIR = Path(__file__).resolve().parents[1]
 DATA = ML_DIR / "data"
 CACHE = DATA / "cache"
+MASKS = DATA / "masks"
 RUNS = ML_DIR / "runs"
 
 CLASSES: list[str] = json.loads((ML_DIR / "sources.json").read_text(encoding="utf-8"))["classes"]
@@ -45,10 +47,11 @@ def cached_path(row: dict) -> Path:
     return out
 
 
-def train_transform(size: int) -> T.Compose:
-    # Field photos: any angle, uneven sun, some blur.
+def train_transform(size: int, crop_min: float = 0.4) -> T.Compose:
+    # Field photos: any angle, uneven sun, some blur. A small crop_min zooms in
+    # often, so lesions fill the frame and the background says less.
     return T.Compose([
-        T.RandomResizedCrop(size, scale=(0.4, 1.0), ratio=(0.6, 1.66)),
+        T.RandomResizedCrop(size, scale=(crop_min, 1.0), ratio=(0.6, 1.66)),
         T.RandomHorizontalFlip(),
         T.RandomVerticalFlip(),
         T.RandomApply([T.RandomRotation(30)], p=0.5),
@@ -70,19 +73,59 @@ def eval_transform(size: int) -> T.Compose:
     ])
 
 
+class BackgroundSwap:
+    """Paste a cut-out leaf onto a blurred field photo.
+
+    BD5's leaves were shot on white paper, so "white background" became a clue
+    for blast and healthy. Swapping the paper for field-like backgrounds forces
+    the model to look at the leaf. Backgrounds are blurred hard so any lesions
+    in them disappear and can't contradict the label.
+    """
+
+    def __init__(self, background_rows: list[dict], p: float = 0.7):
+        index = json.loads((MASKS / "index.json").read_text(encoding="utf-8"))
+        self.masks = {path: MASKS / name for path, name in index.items()}
+        self.backgrounds = [cached_path(r) for r in background_rows if r["path"] not in self.masks]
+        self.p = p
+
+    def has_mask(self, row: dict) -> bool:
+        return row["path"] in self.masks
+
+    def __call__(self, row: dict, leaf: Image.Image) -> Image.Image:
+        if random.random() >= self.p or not self.backgrounds:
+            return leaf
+        with Image.open(self.masks[row["path"]]) as m:
+            mask = m.convert("L").filter(ImageFilter.GaussianBlur(1.5))  # soft edge, no cut-out halo
+        with Image.open(random.choice(self.backgrounds)) as b:
+            bg = b.convert("RGB")
+        # Cover the leaf photo, random position, random flip, heavy blur.
+        scale = max(leaf.width / bg.width, leaf.height / bg.height) * random.uniform(1.0, 1.5)
+        bg = bg.resize((round(bg.width * scale) + 1, round(bg.height * scale) + 1))
+        x, y = random.randint(0, bg.width - leaf.width), random.randint(0, bg.height - leaf.height)
+        bg = bg.crop((x, y, x + leaf.width, y + leaf.height))
+        if random.random() < 0.5:
+            bg = bg.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        bg = bg.filter(ImageFilter.GaussianBlur(random.uniform(4, 10)))
+        return Image.composite(leaf, bg, mask)
+
+
 class LeafDataset(Dataset):
-    def __init__(self, rows: list[dict], transform):
+    def __init__(self, rows: list[dict], transform, swap: BackgroundSwap | None = None):
         self.rows = rows
         self.paths = [cached_path(r) for r in rows]
         self.labels = [CLASSES.index(r["label"]) for r in rows]
         self.transform = transform
+        self.swap = swap
 
     def __len__(self) -> int:
         return len(self.rows)
 
     def __getitem__(self, i: int):
         with Image.open(self.paths[i]) as img:
-            return self.transform(img.convert("RGB")), self.labels[i]
+            img = img.convert("RGB")
+        if self.swap and self.swap.has_mask(self.rows[i]):
+            img = self.swap(self.rows[i], img)
+        return self.transform(img), self.labels[i]
 
 
 # ---------------------------------------------------------------- model

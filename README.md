@@ -13,7 +13,7 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 - [x] Public datasets downloaded, de-duplicated and split ([dataset card](docs/DATASET.md))
 - [x] Baseline model: MobileNetV3-Large, 0.98 validation macro-F1 ([model card](docs/MODEL.md))
 - [x] Never-seen-source test: 0.32–0.61 accuracy, the model leans on backgrounds (see model card)
-- [ ] Reduce the background shortcut
+- [x] Tried tighter crops and background swapping: no reliable gain over 3 seeds; field photos are needed
 - [x] ONNX export: 3.4 MB int8, 5.7 ms per photo, heatmaps built in
 - [x] Flutter app: scan, result with heatmap, quality warnings ([app README](app/README.md))
 - [x] Model verified on a real phone: matches Python on 10/10 photos, about 60 ms per scan
@@ -28,6 +28,7 @@ ml/
   scripts/download.py      download + verify + extract the datasets
   scripts/build_dataset.py de-duplicate and split → ml/data/manifest.csv
   scripts/train.py         fine-tune a pretrained backbone → ml/runs/<name>/
+  scripts/make_masks.py    cut leaves out of plain-background photos for --swap-bg
   scripts/heatmaps.py      draw what the model looks at on validation images
   scripts/export.py        ONNX export + int8 quantization + checks → ml/export/<run>/
   scripts/make_app_fixtures.py  test photos + expected outputs for the app tests

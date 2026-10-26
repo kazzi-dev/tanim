@@ -133,43 +133,69 @@ class _CameraViewState extends State<_CameraView> with WidgetsBindingObserver {
   }
 }
 
-/// The model looks at the centre square of the photo, so the guide shows it.
+/// The model looks at the centre square of the photo. In portrait that square
+/// is as wide as the (centred, full-width) preview, so it sits in the middle of
+/// the screen. Everything outside it is dimmed.
 class _LeafGuide extends StatelessWidget {
   const _LeafGuide();
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          const _TopBar(),
-          const Spacer(),
-          LayoutBuilder(
-            builder: (context, box) {
-              final side = box.maxWidth - 32;
-              return Container(
-                width: side,
-                height: side,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 2),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Fill the square with one leaf.\nDaylight works best.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontSize: 16, height: 1.4, shadows: [Shadow(blurRadius: 8)]),
-          ),
-          const Spacer(),
-          const SizedBox(height: 120),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, box) {
+        final side = box.maxWidth;
+        final top = (box.maxHeight - side) / 2;
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(painter: _DimOutside(side: side)),
+            ),
+            const SafeArea(
+              child: Padding(padding: EdgeInsets.only(top: 16), child: _TopBar()),
+            ),
+            Positioned(
+              left: 24,
+              right: 24,
+              top: top + side + 16,
+              child: const Text(
+                'Fill the square with one leaf.\nDaylight works best.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontSize: 16, height: 1.4, shadows: [Shadow(blurRadius: 8)]),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
+}
+
+class _DimOutside extends CustomPainter {
+  _DimOutside({required this.side});
+  final double side;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final square = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: size.center(Offset.zero), width: side - 4, height: side - 4),
+      const Radius.circular(20),
+    );
+    canvas
+      ..drawPath(
+        Path.combine(PathOperation.difference, Path()..addRect(Offset.zero & size), Path()..addRRect(square)),
+        Paint()..color = Colors.black.withValues(alpha: 0.45),
+      )
+      ..drawRRect(
+        square,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = Colors.white.withValues(alpha: 0.9),
+      );
+  }
+
+  @override
+  bool shouldRepaint(_DimOutside old) => old.side != side;
 }
 
 class _TopBar extends StatelessWidget {

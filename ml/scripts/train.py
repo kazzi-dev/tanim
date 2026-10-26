@@ -28,7 +28,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from common import CLASSES, RUNS, LeafDataset, TanimNet, eval_transform, read_manifest, summarize, train_transform
+from common import CLASSES, RUNS, BackgroundSwap, LeafDataset, TanimNet, eval_transform, read_manifest, summarize, train_transform
 
 
 def parse_args() -> argparse.Namespace:
@@ -43,6 +43,9 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--patience", type=int, default=8)
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--seed", type=int, default=2026)
+    p.add_argument("--crop-min", type=float, default=0.4, help="smallest random crop, as a fraction of the image area")
+    p.add_argument("--swap-bg", type=float, default=0.0,
+                   help="chance of pasting a cut-out leaf onto a blurred field background (needs make_masks.py)")
     p.add_argument("--holdout", help="leave this source out of training and report on its train+val images "
                                      "(its test images stay unread)")
     return p.parse_args()
@@ -126,7 +129,9 @@ def main() -> None:
     train_rows = [r for r in rows if r["split"] == "train"]
     val_rows = [r for r in rows if r["split"] == "val"]
     print(f"Caching images (first run only)... train {len(train_rows)}, val {len(val_rows)}")
-    train_ds = LeafDataset(train_rows, train_transform(args.img))
+    # Backgrounds come from this run's own training photos, so a held-out source never leaks in.
+    swap = BackgroundSwap(train_rows, p=args.swap_bg) if args.swap_bg > 0 else None
+    train_ds = LeafDataset(train_rows, train_transform(args.img, args.crop_min), swap)
     val_ds = LeafDataset(val_rows, eval_transform(args.img))
     loader_kw = dict(batch_size=args.batch, num_workers=args.workers, pin_memory=True, persistent_workers=args.workers > 0)
     train_dl = DataLoader(train_ds, shuffle=True, drop_last=True, **loader_kw)
