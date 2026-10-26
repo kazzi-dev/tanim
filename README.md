@@ -11,8 +11,9 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 ## Status
 
 - [x] Public datasets downloaded, de-duplicated and split ([dataset card](docs/DATASET.md))
-- [ ] Train and evaluate the model (`ml/`)
-- [ ] Export to TFLite
+- [x] Baseline model: MobileNetV3-Large, 0.98 validation macro-F1 ([model card](docs/MODEL.md))
+- [ ] Check how it does on a source it hasn't seen
+- [ ] Export to ONNX (int8) for the app
 - [ ] Flutter app (`app/`)
 - [ ] Collect and add photos from Filipino farmers
 
@@ -23,9 +24,13 @@ ml/
   sources.json             datasets, licences, checksums, folder → class mapping
   scripts/download.py      download + verify + extract the datasets
   scripts/build_dataset.py de-duplicate and split → ml/data/manifest.csv
+  scripts/train.py         fine-tune a pretrained backbone → ml/runs/<name>/
+  scripts/heatmaps.py      draw what the model looks at on validation images
+  scripts/common.py        shared dataset, model and metrics code
   data/                    (git-ignored) downloads, raw images, manifest
 docs/
   DATASET.md               where the images come from and what's wrong with them
+  MODEL.md                 model, training setup and results
 ```
 
 ## Build the dataset
@@ -42,6 +47,16 @@ python -m venv .venv
 
 (On macOS or Linux use `.venv/bin/python`.) The result is `ml/data/manifest.csv`, with one row per kept image giving
 its path, label, source and split.
+
+## Train
+
+Install PyTorch with CUDA first for GPU training (the CPU build works too, just slower):
+
+```bash
+.venv/Scripts/python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+.venv/Scripts/python ml/scripts/train.py --arch mobilenet_v3_large
+.venv/Scripts/python ml/scripts/heatmaps.py mobilenet_v3_large
+```
 
 ## Credits
 

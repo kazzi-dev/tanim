@@ -2,3 +2,14 @@
 numpy>=2.0
 pillow>=11.0
 imagehash>=4.3
+
+# Training. Install torch/torchvision from the CUDA index first for GPU support:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+torch>=2.9
+torchvision>=0.24
+matplotlib>=3.9
+
+# Export
+onnx>=1.17
+onnxscript>=0.3
+onnxruntime>=1.20
