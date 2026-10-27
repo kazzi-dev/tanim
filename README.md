@@ -8,6 +8,11 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 
 *Tanim* means "to plant" in Filipino.
 
+## Why I built this
+
+My family has a farm and works in agriculture, so I wanted to build something that could actually help them, and farmers
+like them. Farmers often have no signal in the field, so Tanim runs fully on the phone.
+
 > Tanim is a study project, not a diagnosis. Check with your local agriculturist before treating a field.
 
 <p>
