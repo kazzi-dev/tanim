@@ -34,6 +34,7 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 - [ ] Try the camera flow on a phone in a real field
 - [x] Test set opened once: 97.6% ([model card](docs/MODEL.md#test-set-opened-once))
 - [x] App icon; advice review sheet for an agriculturist ([docs/ADVICE_REVIEW.md](docs/ADVICE_REVIEW.md))
+- [x] Portfolio case study (portfolio-kazzi, /work/tanim)
 - [ ] Collect and add photos from Filipino farmers
 
 ## Layout
