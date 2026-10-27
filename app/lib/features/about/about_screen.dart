@@ -35,9 +35,15 @@ class AboutScreen extends StatelessWidget {
           ),
           section(
             'What it gets wrong',
-            'The training photos come from India and Bangladesh, not the Philippines. Tested on photos from a '
-                'source it had never seen, it was right only 32–61% of the time, partly because it learned to use '
+            'On 500 test photos from the same collections it learned from, it was right 97.6% of the time. '
+                'But those photos come from India and Bangladesh, not the Philippines. On photos from a collection '
+                'it had never seen, it was right only 32–61% of the time, partly because it learned to use '
                 'backgrounds as a clue. Photos from Filipino farms are needed to fix this.',
+          ),
+          section(
+            'Help improve Tanim',
+            'Tap the bookmark icon on the camera screen, then Collect. Photograph rice leaves in the field and say '
+                'what is on them; an agriculturist’s label is best. Photos stay on your phone until you export them.',
           ),
           section(
             'Photo credits',

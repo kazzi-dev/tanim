@@ -8,6 +8,19 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 
 > Tanim is a study project, not a diagnosis. Check with your local agriculturist before treating a field.
 
+<p>
+  <img src="docs/img/app/result_sure.jpg" width="200" alt="Result: brown spot, 98% sure, heatmap on the lesion">
+  <img src="docs/img/app/result_unsure.jpg" width="200" alt="Result: not sure between leaf blight and brown spot">
+  <img src="docs/img/app/label.jpg" width="200" alt="Labelling a photo for training">
+  <img src="docs/img/app/collection.jpg" width="200" alt="Training photos collected on the phone">
+</p>
+
+| | Result |
+|---|---|
+| Test set (500 photos, same collections as training) | **97.6%** accuracy, 0.971 macro-F1 |
+| A collection the model has never seen | **32–61%** ([why](docs/MODEL.md#never-seen-source-test-leave-one-source-out)) |
+| On a phone | 3.4 MB model, about 60 ms per photo, fully offline |
+
 ## Status
 
 - [x] Public datasets downloaded, de-duplicated and split ([dataset card](docs/DATASET.md))
@@ -19,6 +32,8 @@ which part of the leaf it looked at. Everything runs on the phone, so it works i
 - [x] Model verified on a real phone: matches Python on 10/10 photos, about 60 ms per scan
 - [x] Photo collection mode: label photos in the app, export a zip, import with `ml/scripts/import_collection.py`
 - [ ] Try the camera flow on a phone in a real field
+- [x] Test set opened once: 97.6% ([model card](docs/MODEL.md#test-set-opened-once))
+- [x] App icon; advice review sheet for an agriculturist ([docs/ADVICE_REVIEW.md](docs/ADVICE_REVIEW.md))
 - [ ] Collect and add photos from Filipino farmers
 
 ## Layout
@@ -31,6 +46,7 @@ ml/
   scripts/train.py         fine-tune a pretrained backbone → ml/runs/<name>/
   scripts/import_collection.py  add photos exported from the app as the ph_field source
   scripts/make_masks.py    cut leaves out of plain-background photos for --swap-bg
+  scripts/evaluate_test.py score the final model on the locked test split (once)
   scripts/heatmaps.py      draw what the model looks at on validation images
   scripts/export.py        ONNX export + int8 quantization + checks → ml/export/<run>/
   scripts/make_app_fixtures.py  test photos + expected outputs for the app tests

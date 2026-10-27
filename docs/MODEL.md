@@ -126,6 +126,23 @@ a *picked leaf on paper* and a *living plant in a field* isn't only the backgrou
 leaf angle and the leaf itself all differ. Augmentation can't invent that. **Photos of every class in real fields,
 especially healthy leaves and blast, are the fix.**
 
+### Test set (opened once)
+
+`ml/scripts/evaluate_test.py` scores the shipped int8 model on the 500 locked test photos, and refuses to run a second
+time for the same model:
+
+| | Precision | Recall | F1 | n |
+|---|---:|---:|---:|---:|
+| bacterial_leaf_blight | 0.86 | 0.95 | 0.90 | 60 |
+| blast | 1.00 | 0.99 | 0.99 | 92 |
+| brown_spot | 0.99 | 1.00 | 0.99 | 67 |
+| tungro | 0.99 | 0.95 | 0.97 | 145 |
+| healthy | 1.00 | 0.99 | 1.00 | 136 |
+| **macro** | | | **0.971** | 500 |
+
+Accuracy 97.6% (bd5 100%, riceleafbd 94.8%, sethy2020 98.1%). This agrees with validation, so nothing was overfit to
+the validation set. It's still the same-collections number; the never-seen-source test below is the realistic one.
+
 ## Export
 
 `ml/scripts/export.py <run>` writes an ONNX model the app runs with ONNX Runtime. Normalization, softmax and

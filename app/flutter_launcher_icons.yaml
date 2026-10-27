@@ -1,0 +1,9 @@
+# Regenerate with: ../.venv/Scripts/python tool/make_icon.py && dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/icon.png
+  adaptive_icon_background: "#2F6E2B"
+  adaptive_icon_foreground: assets/icon/foreground.png
+  remove_alpha_ios: true
+  min_sdk_android: 24
