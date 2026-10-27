@@ -1,62 +1,99 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tanim/core/theme/app_theme.dart';
+import 'package:tanim/core/theme/theme_mode_controller.dart';
+import 'package:tanim/core/widgets/ios.dart';
 
-class AboutScreen extends StatelessWidget {
+/// Settings and About, as an iOS-style grouped list.
+class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    Widget section(String title, String body) => Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: text.titleMedium),
-          const SizedBox(height: 6),
-          Text(body, style: text.bodyMedium),
-        ],
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    Widget text(String body) => Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text(body, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.colors.label)),
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('About Tanim')),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
         children: [
-          section(
-            'What it does',
-            'Tanim ("to plant") looks at a photo of one rice leaf and says whether it shows bacterial leaf blight, '
-                'blast, brown spot or tungro, or looks healthy. Everything runs on your phone, so it works without signal.',
+          GroupedSection(
+            header: 'Appearance',
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: CupertinoSlidingSegmentedControl<ThemeMode>(
+                  groupValue: mode,
+                  onValueChanged: (m) => ref.read(themeModeProvider.notifier).set(m ?? ThemeMode.system),
+                  children: const {
+                    ThemeMode.system: Text('System'),
+                    ThemeMode.light: Text('Light'),
+                    ThemeMode.dark: Text('Dark'),
+                  },
+                ),
+              ),
+            ],
           ),
-          section(
-            'How it works',
-            'A small neural network (MobileNetV3, 3.4 MB) was trained on about 2,300 labelled leaf photos. '
-                'The heatmap shows which parts of the photo shaped its answer.',
+          const SizedBox(height: 28),
+          GroupedSection(
+            header: 'What it does',
+            children: [
+              text(
+                'Tanim ("to plant") looks at a photo of one rice leaf and says whether it shows bacterial leaf '
+                'blight, blast, brown spot or tungro, or looks healthy. Everything runs on your phone, so it '
+                'works without signal.',
+              ),
+            ],
           ),
-          section(
-            'What it gets wrong',
-            'On 500 test photos from the same collections it learned from, it was right 97.6% of the time. '
-                'But those photos come from India and Bangladesh, not the Philippines. On photos from a collection '
-                'it had never seen, it was right only 32–61% of the time, partly because it learned to use '
-                'backgrounds as a clue. Photos from Filipino farms are needed to fix this.',
+          const SizedBox(height: 28),
+          const GroupedSection(
+            header: 'How well it works',
+            footer: 'Photos from Filipino farms are needed to close the gap.',
+            children: [
+              GroupedRow(title: 'Test photos', trailing: _Value('97.6%')),
+              GroupedRow(title: 'Photos from a new source', trailing: _Value('32–61%')),
+              GroupedRow(title: 'Model size', trailing: _Value('3.4 MB')),
+            ],
           ),
-          section(
-            'Help improve Tanim',
-            'Tap the bookmark icon on the camera screen, then Collect. Photograph rice leaves in the field and say '
+          const SizedBox(height: 28),
+          GroupedSection(
+            header: 'Help improve Tanim',
+            children: [
+              text(
+                'Tap the bookmark on the camera screen, then Collect. Photograph rice leaves in the field and say '
                 'what is on them; an agriculturist’s label is best. Photos stay on your phone until you export them.',
+              ),
+            ],
           ),
-          section(
-            'Photo credits',
-            'Sethy et al. (2020), Rice Leaf Disease Image Samples; RiceLeafBD; RiceLeafDisease-BD5. '
-                'All from Mendeley Data under CC BY 4.0.',
+          const SizedBox(height: 28),
+          const GroupedSection(
+            header: 'About',
+            footer: 'Not a diagnosis. Before spraying or pulling plants, check with your Municipal Agriculture Office.',
+            children: [
+              GroupedRow(title: 'Made by', trailing: _Value('Kazzi (Mark Nelson Gemina)')),
+              GroupedRow(title: 'GitHub', trailing: _Value('github.com/kazzi-dev')),
+              GroupedRow(
+                title: 'Photo credits',
+                subtitle: 'Sethy et al. (2020), RiceLeafBD, RiceLeafDisease-BD5. Mendeley Data, CC BY 4.0.',
+              ),
+            ],
           ),
-          section(
-            'Not a diagnosis',
-            'Before spraying or pulling plants, check with your Municipal Agriculture Office.',
-          ),
-          section('Made by', 'Kazzi (Mark Nelson Gemina)\ngithub.com/kazzi-dev'),
         ],
       ),
     );
   }
+}
+
+class _Value extends StatelessWidget {
+  const _Value(this.value);
+  final String value;
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(value, style: TextStyle(fontSize: 17, color: context.colors.secondaryLabel, letterSpacing: -0.3));
 }

@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tanim/core/router/app_router.dart';
+import 'package:tanim/core/widgets/ios.dart';
 import 'package:tanim/features/collect/application/collection_controller.dart';
 import 'package:tanim/features/collect/domain/sample.dart';
 import 'package:tanim/features/collect/presentation/label_screen.dart';
@@ -247,18 +249,19 @@ class _TopBar extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Row(
           children: [
-            IconButton(
-              tooltip: 'Done',
-              color: Colors.white,
-              icon: const Icon(Icons.close),
-              onPressed: () => context.pop(),
-            ),
+            GlassButton(icon: CupertinoIcons.xmark, tooltip: 'Done', onPressed: () => context.pop()),
+            const SizedBox(width: 12),
             const Text('Collect photos', style: white),
             const Spacer(),
             if (count != null)
               Padding(
                 padding: const EdgeInsets.only(right: 12),
-                child: Chip(label: Text('$count saved'), visualDensity: VisualDensity.compact),
+                child: GlassButton(
+                  icon: CupertinoIcons.photo_on_rectangle,
+                  label: '$count saved',
+                  tooltip: '$count photos saved',
+                  onPressed: null,
+                ),
               ),
           ],
         ),
@@ -268,24 +271,19 @@ class _TopBar extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          const Icon(Icons.eco, color: Colors.white),
+          const Icon(CupertinoIcons.leaf_arrow_circlepath, color: Colors.white),
           const SizedBox(width: 8),
           const Text('Tanim', style: white),
           const SizedBox(width: 8),
           const Text('by Kazzi', style: TextStyle(color: Colors.white70, fontSize: 13)),
           const Spacer(),
-          IconButton(
+          GlassButton(
+            icon: CupertinoIcons.bookmark,
             tooltip: 'Training photos',
-            color: Colors.white,
-            icon: const Icon(Icons.collections_bookmark_outlined),
             onPressed: () => context.push(Routes.collection),
           ),
-          IconButton(
-            tooltip: 'About Tanim',
-            color: Colors.white,
-            icon: const Icon(Icons.info_outline),
-            onPressed: () => context.push(Routes.about),
-          ),
+          const SizedBox(width: 10),
+          GlassButton(icon: CupertinoIcons.gear, tooltip: 'Settings', onPressed: () => context.push(Routes.about)),
         ],
       ),
     );
@@ -306,10 +304,9 @@ class _ControlBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton.filledTonal(
+            GlassButton(
+              icon: CupertinoIcons.photo,
               tooltip: 'Pick a photo',
-              iconSize: 28,
-              icon: const Icon(Icons.photo_library_outlined),
               onPressed: () => _pickFromGallery(context, collect: collect),
             ),
             Semantics(

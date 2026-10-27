@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tanim/app.dart';
+import 'package:tanim/core/widgets/ios.dart';
 import 'package:tanim/features/collect/application/collection_controller.dart';
 import 'package:tanim/features/collect/data/collection_repository.dart';
 import 'package:tanim/features/collect/domain/sample.dart';
@@ -129,8 +130,8 @@ void main() {
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
 
-      final save = find.widgetWithText(FilledButton, 'Save photo');
-      expect(tester.widget<FilledButton>(save).onPressed, isNull);
+      final save = find.widgetWithText(PillButton, 'Save photo');
+      expect(tester.widget<PillButton>(save).onPressed, isNull);
 
       await tester.tap(find.text('Tungro'));
       await tester.tap(find.text('Agriculturist'));

@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tanim/core/router/app_router.dart';
+import 'package:tanim/core/widgets/ios.dart';
 import 'package:tanim/features/collect/application/collection_controller.dart';
 import 'package:tanim/features/collect/data/collection_repository.dart';
 import 'package:tanim/features/collect/domain/sample.dart';
@@ -118,7 +120,7 @@ class _Grid extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     for (final MapEntry(key: label, value: n) in counts.entries)
-                      if (n > 0) Chip(label: Text('${label.name} $n'), visualDensity: VisualDensity.compact),
+                      if (n > 0) PillTag('${label.name} $n'),
                   ],
                 ),
               ],
@@ -230,14 +232,18 @@ class _Details extends ConsumerWidget {
               icon: const Icon(Icons.delete_outline),
               label: const Text('Delete photo'),
               onPressed: () async {
-                final sure = await showDialog<bool>(
+                final sure = await showCupertinoDialog<bool>(
                   context: context,
-                  builder: (dialog) => AlertDialog(
+                  builder: (dialog) => CupertinoAlertDialog(
                     title: const Text('Delete this photo?'),
                     content: const Text('It will be removed from the phone and from future exports.'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(dialog, false), child: const Text('Cancel')),
-                      TextButton(onPressed: () => Navigator.pop(dialog, true), child: const Text('Delete')),
+                      CupertinoDialogAction(onPressed: () => Navigator.pop(dialog, false), child: const Text('Cancel')),
+                      CupertinoDialogAction(
+                        isDestructiveAction: true,
+                        onPressed: () => Navigator.pop(dialog, true),
+                        child: const Text('Delete'),
+                      ),
                     ],
                   ),
                 );
