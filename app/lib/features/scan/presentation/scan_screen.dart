@@ -271,6 +271,8 @@ class _TopBar extends ConsumerWidget {
           const Icon(Icons.eco, color: Colors.white),
           const SizedBox(width: 8),
           const Text('Tanim', style: white),
+          const SizedBox(width: 8),
+          const Text('by Kazzi', style: TextStyle(color: Colors.white70, fontSize: 13)),
           const Spacer(),
           IconButton(
             tooltip: 'Training photos',

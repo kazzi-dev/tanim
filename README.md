@@ -1,5 +1,7 @@
 # Tanim
 
+*Designed and built by **Kazzi** (Mark Nelson Gemina): [github.com/kazzi-dev](https://github.com/kazzi-dev)*
+
 **An offline rice leaf disease scanner.** Point a phone at a sick rice leaf and Tanim says which disease it most likely
 is (bacterial leaf blight, blast, brown spot or tungro) or that the leaf looks healthy. It also shows how sure it is and
 which part of the leaf it looked at. Everything runs on the phone, so it works in the field with no signal.

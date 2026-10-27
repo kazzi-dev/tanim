@@ -54,6 +54,7 @@ class AboutScreen extends StatelessWidget {
             'Not a diagnosis',
             'Before spraying or pulling plants, check with your Municipal Agriculture Office.',
           ),
+          section('Made by', 'Kazzi (Mark Nelson Gemina)\ngithub.com/kazzi-dev'),
         ],
       ),
     );
