@@ -17,6 +17,7 @@ like them. Farmers often have no signal in the field, so Tanim runs fully on the
 
 <p>
   <img src="docs/img/app/result_sure.jpg" width="200" alt="Result: brown spot, 98% sure, heatmap on the lesion">
+  <img src="docs/img/app/result_sure_dark.jpg" width="200" alt="The same result in dark mode">
   <img src="docs/img/app/result_unsure.jpg" width="200" alt="Result: not sure between leaf blight and brown spot">
   <img src="docs/img/app/label.jpg" width="200" alt="Labelling a photo for training">
   <img src="docs/img/app/collection.jpg" width="200" alt="Training photos collected on the phone">
