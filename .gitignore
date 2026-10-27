@@ -13,3 +13,6 @@ ml/export/
 Thumbs.db
 .vscode/
 .idea/
+
+# APK staged for GitHub Releases
+/release/
