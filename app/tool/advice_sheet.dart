@@ -11,7 +11,9 @@ void main() {
     ..writeln('# Tanim advice: review sheet')
     ..writeln()
     ..writeln('Tanim is a phone app that guesses which rice leaf disease is in a photo. After the guess it shows the')
-    ..writeln('text below. **Please check it before farmers rely on it.** Mark each line OK, or write what it should say.')
+    ..writeln(
+      'text below. **Please check it before farmers rely on it.** Mark each line OK, or write what it should say.',
+    )
     ..writeln('The app always adds: *"Tanim is a study project, not a diagnosis. Before spraying or pulling plants,')
     ..writeln('check with your Municipal Agriculture Office."*')
     ..writeln()

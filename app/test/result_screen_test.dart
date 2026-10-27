@@ -52,7 +52,7 @@ void main() {
 
     expect(find.text('Rice blast'), findsOneWidget);
     expect(find.text('88% sure'), findsOneWidget);
-    expect(find.text('What you can do'), findsOneWidget);
+    expect(find.text('WHAT YOU CAN DO'), findsOneWidget);
     expect(find.textContaining('Municipal Agriculture Office'), findsOneWidget);
     expect(find.text('Not sure'), findsNothing);
   });
@@ -81,7 +81,7 @@ void main() {
 
     final opacity = find.byType(AnimatedOpacity);
     expect(tester.widget<AnimatedOpacity>(opacity).opacity, 1);
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byTooltip('Hide heatmap'));
     await tester.pumpAndSettle();
     expect(tester.widget<AnimatedOpacity>(opacity).opacity, 0);
   });

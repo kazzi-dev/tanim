@@ -42,6 +42,15 @@ Future<void> _loadFonts() async {
         ..addFont(read('roboto-bold.ttf')))
       .load();
   await (FontLoader('MaterialIcons')..addFont(read('materialicons-regular.otf'))).load();
+  // iOS-style icons ship in the cupertino_icons package; find it via the package config.
+  final config = jsonDecode(File('.dart_tool/package_config.json').readAsStringSync()) as Map<String, dynamic>;
+  final pkg = (config['packages'] as List).cast<Map<String, dynamic>>().firstWhere(
+    (p) => p['name'] == 'cupertino_icons',
+  );
+  final iconsDir = Uri.parse(pkg['rootUri'] as String).toFilePath();
+  await (FontLoader(
+    'packages/cupertino_icons/CupertinoIcons',
+  )..addFont(Future.value(ByteData.sublistView(File('$iconsDir/assets/CupertinoIcons.ttf').readAsBytesSync())))).load();
 }
 
 Diagnosis _diagnosis(String name) {
@@ -61,21 +70,34 @@ Diagnosis _diagnosis(String name) {
   );
 }
 
-Future<void> _shoot(WidgetTester tester, Widget screen, String out, {List<Override> overrides = const []}) async {
+Future<void> _shoot(
+  WidgetTester tester,
+  Widget screen,
+  String out, {
+  List<Override> overrides = const [],
+  ThemeMode mode = ThemeMode.light,
+}) async {
   tester.view
     ..physicalSize = const Size(1179, 2556)
     ..devicePixelRatio = 3
     ..padding = const FakeViewPadding(top: 54 * 3, bottom: 20 * 3);
   addTearDown(tester.view.reset);
   debugDisableShadows = false; // set back by _golden before the test ends
-  final router = GoRouter(routes: [GoRoute(path: '/', builder: (_, _) => screen)]);
+  final router = GoRouter(
+    routes: [GoRoute(path: '/', builder: (_, _) => screen)],
+  );
   final container = ProviderContainer(overrides: overrides);
   addTearDown(container.dispose);
   await tester.runAsync(() => container.read(collectionProvider.future));
   // Build on the real clock so photo files load and decode for real; started on
   // the test's fake clock, an Image.file load never finishes.
   await tester.runAsync(() async {
-    await tester.pumpWidget(UncontrolledProviderScope(container: container, child: TanimApp(router: router)));
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: TanimApp(router: router, themeMode: mode),
+      ),
+    );
     await Future<void>.delayed(const Duration(milliseconds: 200));
     await tester.pump();
     await Future<void>.delayed(const Duration(milliseconds: 800));
@@ -110,14 +132,17 @@ void main() {
 
   List<Override> base() => [collectionRepositoryProvider.overrideWith((ref) async => repo)];
 
-  testWidgets('result: confident', (tester) async {
-    await _shoot(
-      tester,
-      const ResultScreen(photoPath: 'sure.jpg'),
-      'result_sure',
-      overrides: [...base(), diagnosisProvider.overrideWith((ref, path) async => _diagnosis('sure'))],
-    );
-  });
+  for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+    testWidgets('result: confident (${mode.name})', (tester) async {
+      await _shoot(
+        tester,
+        const ResultScreen(photoPath: 'sure.jpg'),
+        'result_sure_${mode.name}',
+        mode: mode,
+        overrides: [...base(), diagnosisProvider.overrideWith((ref, path) async => _diagnosis('sure'))],
+      );
+    });
+  }
 
   testWidgets('result: not sure', (tester) async {
     await _shoot(
@@ -129,7 +154,12 @@ void main() {
   });
 
   testWidgets('label screen', (tester) async {
-    await _shoot(tester, const LabelScreen(args: LabelArgs(photoPath: '$_dir/photos/sure.jpg')), 'label', overrides: base());
+    await _shoot(
+      tester,
+      const LabelScreen(args: LabelArgs(photoPath: '$_dir/photos/sure.jpg')),
+      'label',
+      overrides: base(),
+    );
     await tester.tap(find.text('Brown spot'));
     await tester.pumpAndSettle();
     await _golden(tester, 'label');
